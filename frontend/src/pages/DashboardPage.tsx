@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { statsApi, scheduleApi, attendanceApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -129,7 +130,7 @@ export function DashboardPage() {
 }
 
 function StatCard({ icon, label, value, sub, iconBg = 'bg-primary-50' }: {
-  icon: React.ReactNode; label: string; value: string; sub: string; iconBg?: string;
+  icon: ReactNode; label: string; value: string; sub: string; iconBg?: string;
 }) {
   return (
     <Card>

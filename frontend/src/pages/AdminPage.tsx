@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { storeApi, holidayApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -230,7 +230,7 @@ function StoreEditModal({ store, onClose, onSaved }: { store: Store; onClose: ()
     onSuccess: () => { toast.success('Negozio aggiornato'); onSaved(); },
   });
 
-  const f = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [k]: e.target.value }));
+  const f = (k: keyof typeof form) => (e: ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
   return (
     <Modal isOpen onClose={onClose} title="Modifica negozio">

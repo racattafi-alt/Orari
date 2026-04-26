@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -24,12 +25,12 @@ const queryClient = new QueryClient({
   },
 });
 
-function RequireAuth({ children }: { children: React.ReactNode }) {
+function RequireAuth({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuthStore();
   return isAuthenticated() ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
-function RequireRole({ children, roles }: { children: React.ReactNode; roles: string[] }) {
+function RequireRole({ children, roles }: { children: ReactNode; roles: string[] }) {
   const { user } = useAuthStore();
   if (!user || !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;

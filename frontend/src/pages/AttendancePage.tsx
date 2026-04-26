@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, ChangeEvent, ChangeEventHandler } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { attendanceApi, employeeApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -176,7 +176,7 @@ function ManualAttendanceModal({ isOpen, onClose, employees, onSaved }: {
     onError: () => toast.error('Errore inserimento'),
   });
 
-  const f = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+  const f = (k: keyof typeof form) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
 
   return (
@@ -186,12 +186,12 @@ function ManualAttendanceModal({ isOpen, onClose, employees, onSaved }: {
           <option value="">Seleziona dipendente</option>
           {employees.map((e) => <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
         </Select>
-        <Input label="Data" type="date" value={form.date} onChange={f('date') as React.ChangeEventHandler<HTMLInputElement>} />
+        <Input label="Data" type="date" value={form.date} onChange={f('date') as ChangeEventHandler<HTMLInputElement>} />
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Entrata" type="time" value={form.clockIn} onChange={f('clockIn') as React.ChangeEventHandler<HTMLInputElement>} />
-          <Input label="Uscita" type="time" value={form.clockOut} onChange={f('clockOut') as React.ChangeEventHandler<HTMLInputElement>} />
+          <Input label="Entrata" type="time" value={form.clockIn} onChange={f('clockIn') as ChangeEventHandler<HTMLInputElement>} />
+          <Input label="Uscita" type="time" value={form.clockOut} onChange={f('clockOut') as ChangeEventHandler<HTMLInputElement>} />
         </div>
-        <Input label="Note" value={form.notes} onChange={f('notes') as React.ChangeEventHandler<HTMLInputElement>} />
+        <Input label="Note" value={form.notes} onChange={f('notes') as ChangeEventHandler<HTMLInputElement>} />
         <Button className="w-full" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!form.userId || !form.clockIn}>
           Salva presenza
         </Button>

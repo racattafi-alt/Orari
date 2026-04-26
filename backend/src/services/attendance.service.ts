@@ -109,9 +109,7 @@ export async function getAttendance(storeId: string, filters: {
   if (filters.month && filters.year) {
     const m = parseInt(filters.month, 10);
     const y = parseInt(filters.year, 10);
-    const start = new Date(y, m - 1, 1);
-    const end = new Date(y, m, 0);
-    where.date = { gte: start, lte: end };
+    where.date = { gte: new Date(y, m - 1, 1), lte: new Date(y, m, 0) };
   } else if (filters.startDate && filters.endDate) {
     where.date = { gte: new Date(filters.startDate), lte: new Date(filters.endDate) };
   }
@@ -133,7 +131,7 @@ export async function getTodayStatus(userId: string, storeId: string) {
   });
 }
 
-export async function createManualAttendance(storeId: string, adminId: string, data: {
+export async function createManualAttendance(storeId: string, _adminId: string, data: {
   userId: string; date: string; clockIn: string; clockOut?: string; notes?: string;
 }) {
   const user = await prisma.user.findFirst({ where: { id: data.userId, storeId } });
