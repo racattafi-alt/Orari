@@ -1,6 +1,7 @@
 import { prisma } from '../config/database';
 import { ApiError } from '../utils/apiError';
-import { ShiftType } from '@prisma/client';
+
+type ShiftType = 'NORMAL' | 'OVERTIME' | 'HOLIDAY_WORK' | 'ON_CALL' | 'TRAINING' | 'DAY_OFF' | 'SICK' | 'VACATION' | 'PERMIT';
 
 export async function getOrCreateSchedule(storeId: string, year: number, month: number) {
   return prisma.schedule.upsert({

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../config/database';
 import { ApiError } from '../utils/apiError';
 import { format, differenceInMinutes } from 'date-fns';
@@ -96,7 +97,7 @@ export async function clockOut(userId: string, storeId: string, latitude: number
 export async function getAttendance(storeId: string, filters: {
   userId?: string; startDate?: string; endDate?: string; month?: string; year?: string;
 }) {
-  const where: Record<string, unknown> = { storeId };
+  const where: Prisma.AttendanceWhereInput = { storeId };
 
   if (filters.userId) where.userId = filters.userId;
 
@@ -111,7 +112,7 @@ export async function getAttendance(storeId: string, filters: {
   }
 
   return prisma.attendance.findMany({
-    where: where as Parameters<typeof prisma.attendance.findMany>[0]['where'],
+    where,
     include: {
       user: { select: { id: true, firstName: true, lastName: true } },
     },

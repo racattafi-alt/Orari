@@ -2,7 +2,8 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../config/database';
 import { ApiError } from '../utils/apiError';
 import { encrypt, decrypt } from '../utils/crypto';
-import { Role } from '@prisma/client';
+
+type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 
 export async function getEmployees(storeId: string) {
   const users = await prisma.user.findMany({
@@ -18,7 +19,7 @@ export async function getEmployees(storeId: string) {
     orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
   });
 
-  return users.map((u) => ({
+  return users.map((u: typeof users[0]) => ({
     ...u,
     iban: u.ibanEncrypted ? decrypt(u.ibanEncrypted) : null,
     ibanEncrypted: undefined,

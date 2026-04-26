@@ -1,7 +1,8 @@
 import Holidays from 'date-holidays';
 import { prisma } from '../config/database';
-import { HolidayType } from '@prisma/client';
-import { startOfYear, endOfYear, eachDayOfInterval, format } from 'date-fns';
+import { format } from 'date-fns';
+
+type HolidayType = 'NATIONAL' | 'REGIONAL' | 'LOCAL' | 'CUSTOM';
 
 interface HolidayEntry {
   date: string;
@@ -16,10 +17,10 @@ export async function getHolidays(storeId: string, year: number): Promise<Holida
   });
 
   if (cached.length > 0) {
-    return cached.map((h) => ({
+    return cached.map((h: typeof cached[0]) => ({
       date: format(h.date, 'yyyy-MM-dd'),
       name: h.name,
-      type: h.type,
+      type: h.type as HolidayType,
     }));
   }
 

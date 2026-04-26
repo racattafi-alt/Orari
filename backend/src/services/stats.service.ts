@@ -1,6 +1,9 @@
 import { prisma } from '../config/database';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, format, eachMonthOfInterval } from 'date-fns';
 
+type AttendanceRow = { userId: string; workedMinutes: number | null; date: Date };
+type ScheduleEntryRow = { userId: string; date: Date; startTime: string; endTime: string; breakMinutes: number; shiftType: string };
+
 export async function getStoreStats(storeId: string) {
   const now = new Date();
   const monthStart = startOfMonth(now);
@@ -14,19 +17,19 @@ export async function getStoreStats(storeId: string) {
     prisma.attendance.findMany({
       where: { storeId, date: { gte: monthStart, lte: monthEnd }, workedMinutes: { not: null } },
       select: { userId: true, workedMinutes: true, date: true },
-    }),
+    }) as Promise<AttendanceRow[]>,
     prisma.attendance.findMany({
       where: { storeId, date: { gte: yearStart, lte: yearEnd }, workedMinutes: { not: null } },
       select: { userId: true, workedMinutes: true, date: true },
-    }),
+    }) as Promise<AttendanceRow[]>,
     prisma.scheduleEntry.findMany({
       where: { schedule: { storeId }, date: { gte: monthStart, lte: monthEnd } },
-      select: { userId: true, startTime: true, endTime: true, breakMinutes: true, shiftType: true },
-    }),
+      select: { userId: true, date: true, startTime: true, endTime: true, breakMinutes: true, shiftType: true },
+    }) as Promise<ScheduleEntryRow[]>,
   ]);
 
-  const totalMonthHours = monthAttendance.reduce((acc, a) => acc + (a.workedMinutes ?? 0), 0) / 60;
-  const totalYearHours = yearAttendance.reduce((acc, a) => acc + (a.workedMinutes ?? 0), 0) / 60;
+  const totalMonthHours = monthAttendance.reduce((acc: number, a: AttendanceRow) => acc + (a.workedMinutes ?? 0), 0) / 60;
+  const totalYearHours = yearAttendance.reduce((acc: number, a: AttendanceRow) => acc + (a.workedMinutes ?? 0), 0) / 60;
 
   const byEmployee: Record<string, { workedMinutes: number; daysWorked: number }> = {};
   for (const a of monthAttendance) {
@@ -40,10 +43,10 @@ export async function getStoreStats(storeId: string) {
   const monthlyTrend = months.map((m) => {
     const start = startOfMonth(m);
     const end = endOfMonth(m);
-    const monthData = yearAttendance.filter((a) => a.date >= start && a.date <= end);
+    const monthData = yearAttendance.filter((a: AttendanceRow) => a.date >= start && a.date <= end);
     return {
       month: format(m, 'MMM yyyy'),
-      hours: Math.round(monthData.reduce((acc, a) => acc + (a.workedMinutes ?? 0), 0) / 60),
+      hours: Math.round(monthData.reduce((acc: number, a: AttendanceRow) => acc + (a.workedMinutes ?? 0), 0) / 60),
     };
   });
 
@@ -83,8 +86,9 @@ export async function getEmployeeStats(storeId: string, userId: string, year: nu
     }),
     prisma.scheduleEntry.findMany({
       where: { schedule: { storeId }, userId, date: { gte: yearStart, lte: yearEnd } },
+      select: { userId: true, date: true, startTime: true, endTime: true, breakMinutes: true, shiftType: true },
       orderBy: { date: 'asc' },
-    }),
+    }) as Promise<ScheduleEntryRow[]>,
   ]);
 
   const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
@@ -92,10 +96,10 @@ export async function getEmployeeStats(storeId: string, userId: string, year: nu
     const start = startOfMonth(m);
     const end = endOfMonth(m);
     const monthAttendance = attendance.filter((a) => a.date >= start && a.date <= end);
-    const monthScheduled = scheduleEntries.filter((e) => e.date >= start && e.date <= end);
+    const monthScheduled = scheduleEntries.filter((e: ScheduleEntryRow) => e.date >= start && e.date <= end);
 
-    const workedHours = monthAttendance.reduce((acc, a) => acc + (a.workedMinutes ?? 0), 0) / 60;
-    const scheduledHours = monthScheduled.reduce((acc, e) => {
+    const workedHours = monthAttendance.reduce((acc: number, a) => acc + (a.workedMinutes ?? 0), 0) / 60;
+    const scheduledHours = monthScheduled.reduce((acc: number, e: ScheduleEntryRow) => {
       const [sh, sm] = e.startTime.split(':').map(Number);
       const [eh, em] = e.endTime.split(':').map(Number);
       const total = (eh * 60 + em) - (sh * 60 + sm) - e.breakMinutes;
@@ -110,7 +114,7 @@ export async function getEmployeeStats(storeId: string, userId: string, year: nu
     };
   });
 
-  const totalWorkedHours = attendance.reduce((acc, a) => acc + (a.workedMinutes ?? 0), 0) / 60;
+  const totalWorkedHours = attendance.reduce((acc: number, a) => acc + (a.workedMinutes ?? 0), 0) / 60;
   const shiftTypes: Record<string, number> = {};
   for (const e of scheduleEntries) {
     shiftTypes[e.shiftType] = (shiftTypes[e.shiftType] || 0) + 1;
