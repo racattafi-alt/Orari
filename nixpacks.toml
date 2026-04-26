@@ -1,0 +1,10 @@
+# Railpack/Nixpacks configuration
+# Deploy backend and frontend as separate Railway services.
+# For the BACKEND service, set root directory to "backend" in Railway settings.
+# For the FRONTEND service, set root directory to "frontend" in Railway settings.
+
+[phases.build]
+cmds = ["npm install", "npm run build"]
+
+[start]
+cmd = "npm run start"

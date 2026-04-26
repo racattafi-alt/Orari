@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 import { format, addMonths, subMonths } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { SHIFT_TYPE_LABELS } from '@/lib/utils';
-import type { Employee, Schedule, Shift } from '@/types';
+import type { Employee, Schedule, Shift, ShiftType } from '@/types';
 
 export function SchedulePage() {
   const qc = useQueryClient();
@@ -235,7 +235,7 @@ function EntryModal({ isOpen, onClose, date, entryId, scheduleId, employees, shi
         <Select
           label="Tipo turno"
           value={form.shiftType}
-          onChange={(e) => setForm((f) => ({ ...f, shiftType: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, shiftType: e.target.value as ShiftType }))}
         >
           {Object.entries(SHIFT_TYPE_LABELS).map(([k, v]) => (
             <option key={k} value={k}>{v}</option>
