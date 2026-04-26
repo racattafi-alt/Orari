@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: orari_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-orari}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orari_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-orari_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-orari}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: orari_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-orari}:${POSTGRES_PASSWORD:-orari_secret}@postgres:5432/${POSTGRES_DB:-orari_db}
+      JWT_SECRET: ${JWT_SECRET:-changeme_in_production_very_long_secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-changeme_refresh_secret}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-changeme_32char_encryption_key__}
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 4000
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/exports:/app/exports
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: orari_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:4000}
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

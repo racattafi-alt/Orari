@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Store {
+  id           String   @id @default(cuid())
+  name         String
+  city         String
+  province     String   // e.g., "PD"
+  region       String   // e.g., "Veneto"
+  country      String   @default("IT")
+  timezone     String   @default("Europe/Rome")
+  address      String?
+  phone        String?
+  email        String?
+  logoUrl      String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users        User[]
+  schedules    Schedule[]
+  attendance   Attendance[]
+  holidays     HolidayCache[]
+  shifts       Shift[]
+  inviteCodes  InviteCode[]
+}
+
+model User {
+  id                String    @id @default(cuid())
+  storeId           String
+  store             Store     @relation(fields: [storeId], references: [id])
+  email             String    @unique
+  password          String
+  firstName         String
+  lastName          String
+  role              Role      @default(EMPLOYEE)
+  phone             String?
+  ibanEncrypted     String?
+  fiscalCode        String?
+  hireDate          DateTime?
+  weeklyHours       Float     @default(40)
+  isActive          Boolean   @default(true)
+  canClockIn        Boolean   @default(false)
+  geoLatitude       Float?
+  geoLongitude      Float?
+  geoRadiusMeters   Int?
+  avatarUrl         String?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  scheduleEntries   ScheduleEntry[]
+  attendance        Attendance[]
+  refreshTokens     RefreshToken[]
+
+  @@index([storeId])
+  @@index([email])
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Schedule {
+  id          String    @id @default(cuid())
+  storeId     String
+  store       Store     @relation(fields: [storeId], references: [id])
+  year        Int
+  month       Int
+  name        String?
+  notes       String?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  entries     ScheduleEntry[]
+
+  @@unique([storeId, year, month])
+  @@index([storeId])
+}
+
+model ScheduleEntry {
+  id           String     @id @default(cuid())
+  scheduleId   String
+  schedule     Schedule   @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  date         DateTime   @db.Date
+  startTime    String
+  endTime      String
+  breakMinutes Int        @default(0)
+  notes        String?
+  shiftType    ShiftType  @default(NORMAL)
+  shiftId      String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([scheduleId])
+  @@index([userId])
+  @@index([date])
+}
+
+enum ShiftType {
+  NORMAL
+  OVERTIME
+  HOLIDAY_WORK
+  ON_CALL
+  TRAINING
+  DAY_OFF
+  SICK
+  VACATION
+  PERMIT
+}
+
+model Attendance {
+  id             String    @id @default(cuid())
+  storeId        String
+  store          Store     @relation(fields: [storeId], references: [id])
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  date           DateTime  @db.Date
+  clockIn        DateTime?
+  clockOut       DateTime?
+  clockInLat     Float?
+  clockInLon     Float?
+  clockOutLat    Float?
+  clockOutLon    Float?
+  clockInValid   Boolean   @default(true)
+  clockOutValid  Boolean   @default(true)
+  workedMinutes  Int?
+  notes          String?
+  isManual       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([storeId, userId, date])
+  @@index([storeId])
+  @@index([userId])
+  @@index([date])
+}
+
+model HolidayCache {
+  id        String      @id @default(cuid())
+  storeId   String
+  store     Store       @relation(fields: [storeId], references: [id])
+  date      DateTime    @db.Date
+  name      String
+  nameLang  String      @default("it")
+  type      HolidayType
+  year      Int
+  createdAt DateTime    @default(now())
+
+  @@unique([storeId, date, name])
+  @@index([storeId, year])
+}
+
+enum HolidayType {
+  NATIONAL
+  REGIONAL
+  LOCAL
+  CUSTOM
+}
+
+model Shift {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  name      String
+  startTime String
+  endTime   String
+  breakMinutes Int   @default(0)
+  color     String   @default("#3B82F6")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId])
+}
+
+model InviteCode {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  code      String   @unique
+  role      Role     @default(EMPLOYEE)
+  usedById  String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
+}
