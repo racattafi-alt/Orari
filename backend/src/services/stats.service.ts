@@ -83,7 +83,7 @@ export async function getEmployeeStats(storeId: string, userId: string, year: nu
     prisma.attendance.findMany({
       where: { storeId, userId, date: { gte: yearStart, lte: yearEnd }, workedMinutes: { not: null } },
       orderBy: { date: 'asc' },
-    }),
+    }) as Promise<AttendanceRow[]>,
     prisma.scheduleEntry.findMany({
       where: { schedule: { storeId }, userId, date: { gte: yearStart, lte: yearEnd } },
       select: { userId: true, date: true, startTime: true, endTime: true, breakMinutes: true, shiftType: true },

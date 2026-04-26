@@ -1,7 +1,12 @@
-import { Prisma } from '@prisma/client';
 import { prisma } from '../config/database';
 import { ApiError } from '../utils/apiError';
 import { format, differenceInMinutes } from 'date-fns';
+
+interface AttendanceWhere {
+  storeId: string;
+  userId?: string;
+  date?: { gte?: Date; lte?: Date };
+}
 
 const EARTH_RADIUS_M = 6371000;
 
@@ -97,7 +102,7 @@ export async function clockOut(userId: string, storeId: string, latitude: number
 export async function getAttendance(storeId: string, filters: {
   userId?: string; startDate?: string; endDate?: string; month?: string; year?: string;
 }) {
-  const where: Prisma.AttendanceWhereInput = { storeId };
+  const where: AttendanceWhere = { storeId };
 
   if (filters.userId) where.userId = filters.userId;
 
@@ -111,8 +116,9 @@ export async function getAttendance(storeId: string, filters: {
     where.date = { gte: new Date(filters.startDate), lte: new Date(filters.endDate) };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return prisma.attendance.findMany({
-    where,
+    where: where as any,
     include: {
       user: { select: { id: true, firstName: true, lastName: true } },
     },
