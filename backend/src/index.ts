@@ -1,4 +1,3 @@
-import './config/env';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -6,7 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import { env } from './config/env';
+import { env, validateEnv } from './config/env';
 import { connectDatabase } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import { setupSocket } from './socket';
@@ -46,6 +45,7 @@ setupSocket(io);
 
 async function start() {
   try {
+    validateEnv();
     await connectDatabase();
     httpServer.listen(env.port, () => {
       logger.info(`Server running on port ${env.port} (${env.nodeEnv})`);
