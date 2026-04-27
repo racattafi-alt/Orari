@@ -6,4 +6,4 @@ cmds = [
 ]
 
 [start]
-cmd = "npx prisma migrate deploy && node dist/index.js"
+cmd = "npx prisma db push && npx prisma db seed && node dist/index.js"

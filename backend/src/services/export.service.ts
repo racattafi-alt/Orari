@@ -66,7 +66,6 @@ export async function exportScheduleExcel(storeId: string, year: number, month: 
 
   let row = 3;
   for (const [, userData] of Object.entries(userMap)) {
-    const rowCells = ws.getRow(row);
     ws.getCell(row, 1).value = userData.name;
     ws.getCell(row, 1).font = { bold: false };
 

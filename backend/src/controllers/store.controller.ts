@@ -26,8 +26,7 @@ export async function listStores(req: Request, res: Response, next: NextFunction
 
 export async function getStore(req: Request, res: Response, next: NextFunction) {
   try {
-    const storeId = req.user!.role === 'SUPER_ADMIN' ? req.params.id : req.user!.storeId;
-    const store = await prisma.store.findUnique({ where: { id: storeId } });
+    const store = await prisma.store.findUnique({ where: { id: req.user!.storeId } });
     if (!store) throw ApiError.notFound('Negozio non trovato');
     res.json(store);
   } catch (err) { next(err); }

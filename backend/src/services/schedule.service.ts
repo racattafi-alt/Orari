@@ -97,32 +97,28 @@ export async function bulkUpsertEntries(storeId: string, scheduleId: string, ent
   const schedule = await prisma.schedule.findFirst({ where: { id: scheduleId, storeId } });
   if (!schedule) throw ApiError.notFound('Orario non trovato');
 
-  return prisma.$transaction(
-    entries.map((entry) =>
-      prisma.scheduleEntry.upsert({
-        where: {
-          id: 'placeholder_' + entry.userId + '_' + entry.date,
-        },
-        create: {
-          scheduleId,
-          userId: entry.userId,
-          date: new Date(entry.date),
-          startTime: entry.startTime,
-          endTime: entry.endTime,
-          breakMinutes: entry.breakMinutes ?? 0,
-          notes: entry.notes,
-          shiftType: entry.shiftType ?? 'NORMAL',
-          shiftId: entry.shiftId,
-        },
-        update: {
-          startTime: entry.startTime,
-          endTime: entry.endTime,
-          breakMinutes: entry.breakMinutes ?? 0,
-          notes: entry.notes,
-          shiftType: entry.shiftType ?? 'NORMAL',
-        },
-      })
-    )
+  await prisma.$transaction(
+    entries.flatMap((entry) => {
+      const date = new Date(entry.date);
+      return [
+        prisma.scheduleEntry.deleteMany({
+          where: { scheduleId, userId: entry.userId, date },
+        }),
+        prisma.scheduleEntry.create({
+          data: {
+            scheduleId,
+            userId: entry.userId,
+            date,
+            startTime: entry.startTime,
+            endTime: entry.endTime,
+            breakMinutes: entry.breakMinutes ?? 0,
+            notes: entry.notes,
+            shiftType: entry.shiftType ?? 'NORMAL',
+            shiftId: entry.shiftId,
+          },
+        }),
+      ];
+    })
   );
 }
 

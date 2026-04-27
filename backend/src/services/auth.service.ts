@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import { prisma } from '../config/database';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import { ApiError } from '../utils/apiError';
@@ -20,7 +19,6 @@ export async function loginService(email: string, password: string) {
   const payload = { userId: user.id, storeId: user.storeId, role: user.role };
   const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(payload);
-  const rawToken = crypto.randomBytes(40).toString('hex');
 
   await prisma.refreshToken.create({
     data: {

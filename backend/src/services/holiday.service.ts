@@ -1,6 +1,7 @@
 import Holidays from 'date-holidays';
 import { prisma } from '../config/database';
 import { format } from 'date-fns';
+import { ApiError } from '../utils/apiError';
 
 type HolidayType = 'NATIONAL' | 'REGIONAL' | 'LOCAL' | 'CUSTOM';
 
@@ -111,7 +112,7 @@ export async function addCustomHoliday(storeId: string, date: string, name: stri
 
 export async function removeCustomHoliday(storeId: string, holidayId: string) {
   const h = await prisma.holidayCache.findFirst({ where: { id: holidayId, storeId, type: 'CUSTOM' } });
-  if (!h) throw new Error('Festività non trovata');
+  if (!h) throw ApiError.notFound('Festività non trovata');
   await prisma.holidayCache.delete({ where: { id: holidayId } });
 }
 
