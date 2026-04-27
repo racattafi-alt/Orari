@@ -11,6 +11,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { setupSocket } from './socket';
 import routes from './routes';
 import { logger } from './utils/logger';
+import { seedDefaultAdmin } from './db/seed';
 
 const app = express();
 const httpServer = createServer(app);
@@ -47,6 +48,7 @@ async function start() {
   try {
     validateEnv();
     await connectDatabase();
+    await seedDefaultAdmin();
     httpServer.listen(env.port, () => {
       logger.info(`Server running on port ${env.port} (${env.nodeEnv})`);
     });
