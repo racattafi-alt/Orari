@@ -1,10 +1,11 @@
-# Railpack/Nixpacks configuration
-# Deploy backend and frontend as separate Railway services.
-# For the BACKEND service, set root directory to "backend" in Railway settings.
-# For the FRONTEND service, set root directory to "frontend" in Railway settings.
+# Root nixpacks.toml — usato quando Railway deploya dal root del repo
+# Se invece il backend service ha Root Directory = "backend", usa backend/nixpacks.toml
+
+[phases.install]
+cmds = ["cd backend && npm install"]
 
 [phases.build]
-cmds = ["npm install", "npm run build"]
+cmds = ["cd backend && npx prisma generate && npm run build"]
 
 [start]
-cmd = "npm run start"
+cmd = "cd backend && npx prisma db push && node dist/index.js"
